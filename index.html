@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>WhatsApp Meta AI - Quick Answers</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0b1a2e 0%, #1a2f3f 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 12px;
+        }
+
+        /* Main WhatsApp Container */
+        .whatsapp-container {
+            max-width: 480px;
+            width: 100%;
+            height: 850px;
+            background-color: #0b141a;
+            border-radius: 30px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Status Bar */
+        .status-bar {
+            background-color: #1f2c34;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            color: #e9edef;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        /* Chat Header */
+        .chat-header {
+            background-color: #1f2c34;
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border-bottom: 1px solid #2a3942;
+        }
+
+        .back-button {
+            color: #e9edef;
+            font-size: 24px;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background-color 0.2s;
+        }
+
+        .back-button:hover {
+            background-color: #2a3942;
+        }
+
+        .profile-pic {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00a884 0%, #008069 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .chat-info {
+            flex: 1;
+        }
+
+        .chat-name {
+            color: #e9edef;
+            font-weight: 600;
+            font-size: 17px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .verified-badge {
+            background-color: #00a884;
+            color: white;
+            font-size: 12px;
+            padding: 2px 6px;
+            border-radius: 12px;
+            font-weight: normal;
+        }
+
+        .chat-status {
+            color: #8696a0;
+            font-size: 13px;
+            margin-top: 2px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .online-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #00a884;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .header-icons {
+            display: flex;
+            gap: 20px;
+            color: #8696a0;
+            font-size: 20px;
+        }
+
+        /* Chat Messages Area */
+        .chat-messages {
+            flex: 1;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%230e1a22"/><circle cx="50" cy="50" r="8" fill="%231a2a33" opacity="0.3"/><circle cx="20" cy="30" r="5" fill="%231a2a33" opacity="0.3"/><circle cx="80" cy="70" r="12" fill="%231a2a33" opacity="0.3"/></svg>');
+            background-color: #0b141a;
+            padding: 16px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            scroll-behavior: smooth;
+        }
+
+        /* Message Bubbles */
+        .message {
+            max-width: 80%;
+            padding: 8px 12px;
+            border-radius: 12px;
+            font-size: 14px;
+            line-height: 1.5;
+            word-wrap: break-word;
+            position: relative;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.received {
+            background-color: #1f2c34;
+            color: #e9edef;
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+
+        .message.sent {
+            background-color: #005c4b;
+            color: #e9edef;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message-time {
+            font-size: 11px;
+            color: #8696a0;
+            margin-top: 4px;
+            text-align: right;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 4px;
+        }
+
+        .message.sent .message-time {
+            color: #a7d9c4;
+        }
+
+        .double-tick {
+            color: #8696a0;
+            font-size: 14px;
+        }
+
+        .message.sent .double-tick {
+            color: #53bdeb;
+        }
+
+        /* AI Thinking Indicator */
+        .typing-indicator {
+            background-color: #1f2c34;
+            padding: 12px 16px;
+            border-radius: 18px;
+            border-bottom-left-radius: 4px;
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            width: fit-content;
+            margin-bottom: 8px;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #8696a0;
+            border-radius: 50%;
+            animation: typingBounce 1.4s infinite ease-in-out;
+        }
+
+        .typing-dot:nth-child(1) { animation-delay: 0s; }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typingBounce {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-8px); }
+        }
+
+        /* Quick Reply Suggestions */
+        .suggestions-container {
+            display: flex;
+            gap: 8px;
+            padding: 8px 16px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            background-color: #1f2c34;
+            border-top: 1px solid #2a3942;
+        }
+
+        .suggestions-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        .suggestion-chip {
+            background-color: #2a3942;
+            color: #e9edef;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid #3a4a53;
+        }
+
+        .suggestion-chip:hover {
+            background-color: #3a4a53;
+            transform: scale(1.05);
+        }
+
+        .suggestion-chip:active {
+            transform: scale(0.95);
+        }
+
+        /* Message Input Area */
+        .message-input-area {
+            background-color: #1f2c34;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-top: 1px solid #2a3942;
+        }
+
+        .attach-button {
+            color: #8696a0;
+            font-size: 24px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .attach-button:hover {
+            color: #e9edef;
+        }
+
+        .input-wrapper {
+            flex: 1;
+            background-color: #2a3942;
+            border-radius: 24px;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+        }
+
+        .message-input {
+            flex: 1;
+            background: none;
+            border: none;
+            outline: none;
+            color: #e9edef;
+            font-size: 15px;
+            padding: 4px 0;
+        }
+
+        .message-input::placeholder {
+            color: #8696a0;
+        }
+
+        .emoji-button, .voice-button {
+            color: #8696a0;
+            font-size: 22px;
+            cursor: pointer;
+            margin-left: 12px;
+            transition: color 0.2s;
+        }
+
+        .send-button {
+            background-color: #00a884;
+            color: white;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            outline: none;
+            font-size: 20px;
+        }
+
+        .send-button:hover {
+            background-color: #008069;
+            transform: scale(1.05);
+        }
+
+        .send-button:active {
+            transform: scale(0.95);
+        }
+
+        /* AI Response Speed Badge */
+        .speed-badge {
+            background-color: rgba(0, 168, 132, 0.2);
+            color: #00a884;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-left: 8px;
+        }
+
+        .speed-badge i {
+            font-size: 12px;
+        }
+
+        /* Welcome Message */
+        .welcome-message {
+            text-align: center;
+            margin: 20px 0;
+            color: #8696a0;
+            font-size: 13px;
+        }
+
+        .welcome-message strong {
+            color: #00a884;
+        }
+    </style>
+</head>
+<body>
+    <div class="whatsapp-container">
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <span>12:34</span>
+            <span>📶 🔋 100%</span>
+        </div>
+
+        <!-- Chat Header -->
+        <div class="chat-header">
+            <div class="back-button">←</div>
+            <div class="profile-pic">AI</div>
+            <div class="chat-info">
+                <div class="chat-name">
+                    Abdul Hannan's AI Assistant
+                    <span class="verified-badge">✓ AI</span>
+                </div>
+                <div class="chat-status">
+                    <span class="online-dot"></span>
+                    Online · Quick Answers
+                    <span class="speed-badge">
+                        ⚡ 0.5s response
+                    </span>
+                </div>
+            </div>
+            <div class="header-icons">
+                <span>📞</span>
+                <span>⋮</span>
+            </div>
+        </div>
+
+        <!-- Chat Messages Area -->
+        <div class="chat-messages" id="chatMessages">
+            <!-- Welcome Message -->
+            <div class="welcome-message">
+                <strong>✨ Abdul Hannan's AI Assistant</strong><br>
+                Ask me anything! I'll respond instantly.
+            </div>
+
+            <!-- Initial AI Message -->
+            <div class="message received">
+                Hello! I'm Abdul Hannan's AI. How can I help you today?
+                <div class="message-time">
+                    12:34
+                    <span class="double-tick">✓✓</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Reply Suggestions -->
+        <div class="suggestions-container" id="suggestions">
+            <div class="suggestion-chip" onclick="sendQuickMessage('What is the weather today?')">🌤️ Weather</div>
+            <div class="suggestion-chip" onclick="sendQuickMessage('Tell me a fun fact')">🎯 Fun Fact</div>
+            <div class="suggestion-chip" onclick="sendQuickMessage('What is 25 * 48?')">🧮 Calculator</div>
+            <div class="suggestion-chip" onclick="sendQuickMessage('Translate Hello to Spanish')">🌎 Translate</div>
+            <div class="suggestion-chip" onclick="sendQuickMessage('Latest news headlines')">📰 News</div>
+            <div class="suggestion-chip" onclick="sendQuickMessage('Define photosynthesis')">📚 Dictionary</div>
+        </div>
+
+        <!-- Message Input Area -->
+        <div class="message-input-area">
+            <div class="attach-button">📎</div>
+            <div class="input-wrapper">
+                <input type="text" class="message-input" id="messageInput" placeholder="Type a message" onkeypress="handleKeyPress(event)">
+                <span class="emoji-button">😊</span>
+                <span class="voice-button">🎤</span>
+            </div>
+            <div class="send-button" id="sendButton" onclick="sendMessage()">➤</div>
+        </div>
+    </div>
+
+    <script>
+        // AI Knowledge Base for Quick Responses
+        const aiKnowledgeBase = {
+            // Weather responses
+            weather: (query) => {
+                const cities = {
+                    'new york': '🌆 New York: 72°F, Partly cloudy',
+                    'london': '🌧️ London: 63°F, Light rain',
+                    'tokyo': '🗼 Tokyo: 81°F, Sunny',
+                    'paris': '🗼 Paris: 68°F, Clear sky',
+                    'sydney': '🏄 Sydney: 70°F, Windy',
+                    'dubai': '🏜️ Dubai: 95°F, Hot and dry',
+                    'default': '📍 Please specify a city for weather info'
+                };
+                
+                const cityMatch = query.match(/(?:in|at|for)\s+([a-zA-Z\s]+)/i);
+                if (cityMatch) {
+                    const city = cityMatch[1].toLowerCase().trim();
+                    return cities[city] || `🌍 Weather for ${city}: 75°F, Pleasant conditions`;
+                }
+                return cities.default;
+            },
+
+            // Calculator
+            calculate: (query) => {
+                try {
+                    // Extract math expression
+                    const mathMatch = query.match(/[0-9+\-*/()\s]+/);
+                    if (mathMatch) {
+                        // Safe evaluation
+                        const result = Function('"use strict";return (' + mathMatch[0] + ')')();
+                        return `🧮 Result: ${result}`;
+                    }
+                    return "Please provide a valid math expression";
+                } catch (e) {
+                    return "I couldn't calculate that. Please check your expression.";
+                }
+            },
+
+            // Translation
+            translate: (query) => {
+                const translations = {
+                    'hello': {
+                        'spanish': 'Hola',
+                        'french': 'Bonjour',
+                        'german': 'Hallo',
+                        'italian': 'Ciao',
+                        'japanese': 'こんにちは'
+                    },
+                    'goodbye': {
+                        'spanish': 'Adiós',
+                        'french': 'Au revoir',
+                        'german': 'Auf Wiedersehen',
+                        'italian': 'Arrivederci',
+                        'japanese': 'さようなら'
+                    },
+                    'thank you': {
+                        'spanish': 'Gracias',
+                        'french': 'Merci',
+                        'german': 'Danke',
+                        'italian': 'Grazie',
+                        'japanese': 'ありがとう'
+                    }
+                };
+
+                const words = query.toLowerCase().split(' ');
+                let targetWord = '';
+                let targetLang = 'spanish';
+
+                // Detect language
+                for (let lang of ['spanish', 'french', 'german', 'italian', 'japanese']) {
+                    if (query.toLowerCase().includes(`to ${lang}`)) {
+                        targetLang = lang;
+                        break;
+                    }
+                }
+
+                // Find word to translate
+                for (let word of Object.keys(translations)) {
+                    if (query.toLowerCase().includes(word)) {
+                        targetWord = word;
+                        break;
+                    }
+                }
+
+                if (targetWord && translations[targetWord][targetLang]) {
+                    return `🌎 "${targetWord}" in ${targetLang}: ${translations[targetWord][targetLang]}`;
+                }
+
+                return "I can translate common words. Try 'Translate hello to Spanish'";
+            },
+
+            // Fun facts
+            funFacts: [
+                "🐝 Honey never spoils. Archaeologists found 3000-year-old honey in Egyptian tombs, still edible!",
+                "🦒 Giraffes have the same number of neck vertebrae as humans - just 7!",
+                "🌊 90% of all volcanic activity happens in the oceans.",
+                "🧠 Your brain uses 20% of your body's oxygen and calories.",
+                "🌍 Earth's longest mountain range is underwater - the Mid-Ocean Ridge, over 40,000 miles long.",
+                "📱 The first mobile phone call was made in 1973 by Martin Cooper, a Motorola executive.",
+                "⚡ Lightning strikes the Earth about 100 times every second.",
+                "🎵 The world's quietest room is at Microsoft's headquarters - you can hear your own heartbeat."
+            ],
+
+            // News headlines
+            news: [
+                "📰 Tech: AI breakthrough enables real-time language translation",
+                "📰 Science: New planet discovered in habitable zone",
+                "📰 Business: Global markets show strong growth",
+                "📰 Sports: Record-breaking performance at Olympics",
+                "📰 Health: Breakthrough in cancer research announced"
+            ],
+
+            // Dictionary
+            define: (query) => {
+                const definitions = {
+                    'photosynthesis': '🌿 The process by which plants convert light energy into chemical energy',
+                    'gravity': '🌍 The force that attracts objects toward each other',
+                    'ai': '🤖 Artificial Intelligence - computer systems that can perform human-like tasks',
+                    'quantum': '⚛️ The smallest discrete quantity of physical property',
+                    'algorithm': '📊 Step-by-step procedure for solving a problem'
+                };
+
+                const wordMatch = query.match(/define\s+(\w+)/i);
+                if (wordMatch) {
+                    const word = wordMatch[1].toLowerCase();
+                    return definitions[word] || `📖 ${word}: Term not found in quick database`;
+                }
+                return "Please specify a word to define. Example: 'Define photosynthesis'";
+            },
+
+            // General knowledge fallback
+            general: (query) => {
+                const responses = [
+                    `🤔 That's interesting! Let me think about "${query.substring(0, 50)}..."`,
+                    `💡 Quick answer: Based on my knowledge, ${query} relates to many fascinating topics.`,
+                    `✨ Here's what I know: ${query} is something many people ask about.`,
+                    `🎯 Quick response: I'd recommend checking reliable sources about "${query.substring(0, 30)}".`
+                ];
+                return responses[Math.floor(Math.random() * responses.length)];
+            }
+        };
+
+        // Send message function
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (message) {
+                // Add user message to chat
+                addMessage(message, 'sent');
+                input.value = '';
+                
+                // Show typing indicator
+                showTypingIndicator();
+                
+                // Generate AI response
+                setTimeout(() => {
+                    hideTypingIndicator();
+                    const aiResponse = generateAIResponse(message);
+                    addMessage(aiResponse, 'received');
+                }, 300); // Quick response simulation (300ms)
+            }
+        }
+
+        // Handle Enter key
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        // Send quick message from suggestions
+        function sendQuickMessage(message) {
+            document.getElementById('messageInput').value = message;
+            sendMessage();
+        }
+
+        // Add message to chat
+        function addMessage(text, type) {
+            const messagesContainer = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            
+            const now = new Date();
+            const timeString = now.getHours() + ':' + now.getMinutes().toString().padStart(2, '0');
+            
+            messageDiv.innerHTML = `
+                ${text}
+                <div class="message-time">
+                    ${timeString}
+                    <span class="double-tick">${type === 'sent' ? '✓✓' : ''}</span>
+                </div>
+            `;
+            
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // Show typing indicator
+        function showTypingIndicator() {
+            const messagesContainer = document.getElementById('chatMessages');
+            
+            // Remove existing indicator if any
+            hideTypingIndicator();
+            
+            const indicator = document.createElement('div');
+            indicator.className = 'typing-indicator';
+            indicator.id = 'typingIndicator';
+            indicator.innerHTML = `
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            `;
+            
+            messagesContainer.appendChild(indicator);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // Hide typing indicator
+        function hideTypingIndicator() {
+            const indicator = document.getElementById('typingIndicator');
+            if (indicator) {
+                indicator.remove();
+            }
+        }
+
+        // Generate AI response based on query
+        function generateAIResponse(query) {
+            const lowercaseQuery = query.toLowerCase();
+            
+            // Weather
+            if (lowercaseQuery.includes('weather') || lowercaseQuery.includes('temperature')) {
+                return aiKnowledgeBase.weather(query);
+            }
+            
+            // Calculator
+            if (lowercaseQuery.match(/[0-9+\-*/()]/) && (lowercaseQuery.includes('+') || lowercaseQuery.includes('-') || lowercaseQuery.includes('*') || lowercaseQuery.includes('/') || lowercaseQuery.includes('calculate'))) {
+                return aiKnowledgeBase.calculate(query);
+            }
+            
+            // Translation
+            if (lowercaseQuery.includes('translate') || lowercaseQuery.includes('in spanish') || lowercaseQuery.includes('in french')) {
+                return aiKnowledgeBase.translate(query);
+            }
+            
+            // Fun facts
+            if (lowercaseQuery.includes('fun fact') || lowercaseQuery.includes('interesting fact')) {
+                return aiKnowledgeBase.funFacts[Math.floor(Math.random() * aiKnowledgeBase.funFacts.length)];
+            }
+            
+            // News
+            if (lowercaseQuery.includes('news') || lowercaseQuery.includes('headlines')) {
+                return aiKnowledgeBase.news.join('\n\n');
+            }
+            
+            // Dictionary
+            if (lowercaseQuery.includes('define') || lowercaseQuery.includes('definition') || lowercaseQuery.includes('meaning')) {
+                return aiKnowledgeBase.define(query);
+            }
+            
+            // Time/Date
+            if (lowercaseQuery.includes('time') || lowercaseQuery.includes('date') || lowercaseQuery.includes('today')) {
+                const now = new Date();
+                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                return `📅 Today is ${now.toLocaleDateString('en-US', options)}\n⏰ Current time: ${now.toLocaleTimeString()}`;
+            }
+            
+            // Greetings
+            if (lowercaseQuery.match(/^(hi|hello|hey|greetings)/i)) {
+                return "👋 Hello! How can I help you today? I'm here to provide quick answers!";
+            }
+            
+            // Thank you
+            if (lowercaseQuery.includes('thank')) {
+                return "😊 You're welcome! Feel free to ask if you need anything else!";
+            }
+            
+            // Help
+            if (lowercaseQuery.includes('help') || lowercaseQuery.includes('what can you do')) {
+                return "🤖 I can help with:\n• Weather forecasts\n• Math calculations\n• Translations\n• Fun facts\n• News updates\n• Definitions\n• General knowledge\nJust ask me anything!";
+            }
+            
+            // Default response
+            return aiKnowledgeBase.general(query);
+        }
+
+        // Add random quick responses from Meta AI
+        const metaResponses = [
+            "⚡ Quick answer: I'm processing your request...",
+            "🤖 Meta AI here! Let me help you with that.",
+            "✨ Accessing knowledge base...",
+            "🎯 Here's what I found:",
+            "💡 Quick insight:",
+        ];
+
+        // Initialize with some example interactions
+        window.onload = function() {
+            // Simulate welcome message
+            setTimeout(() => {
+                addMessage("I can answer questions instantly! Try asking about weather, math, translations, or fun facts!", 'received');
+            }, 500);
+        };
+    </script>
+</body>
+</html>
